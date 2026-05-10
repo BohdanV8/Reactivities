@@ -1,4 +1,5 @@
-﻿using Domain;
+﻿using Application.Core;
+using Domain;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -9,23 +10,40 @@ namespace Application.Activities.Commands
 {
     public class DeleteActivity
     {
-        public class Command : IRequest
+        public class Command : IRequest<Result<Unit>>
         {
+            public Guid ID { get; private set; }
             public Command(Guid id)
             {
-                this.id = id;
+                this.ID = id;
             }
-            public Guid id;
-
         }
 
-        public class Handler(AppDbContext appDbContext) : IRequestHandler<Command>
+        public class Handler : IRequestHandler<Command, Result<Unit>>
         {
-            public async Task Handle(Command request, CancellationToken cancellationToken)
+            private readonly AppDbContext appDbContext;
+            public Handler(AppDbContext appDbContext)
             {
-                Activity? activity = await appDbContext.Activities.FindAsync(request.id, cancellationToken) ?? throw new Exception("Cannot find activity");
+                this.appDbContext = appDbContext;
+            }
+
+            public async Task<Result<Unit>> Handle(Command request, CancellationToken cancellationToken)
+            {
+                Activity? activity = await appDbContext.Activities.FindAsync(request.ID, cancellationToken) ??
+                    throw new Exception("Cannot find activity");
+
+
+                if(activity is null)
+                {
+                    return Result<Unit>.Failure("Cannot find activity", 404);
+                }
                 appDbContext.Remove(activity);
-                await appDbContext.SaveChangesAsync(cancellationToken);
+                var result = await appDbContext.SaveChangesAsync(cancellationToken) > 0;
+                if (!result)
+                {
+                    return Result<Unit>.Failure("Failed to delete activity", 400);
+                }
+                return Result<Unit>.Success(Unit.Value);
             }
         }
     }

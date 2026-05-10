@@ -5,35 +5,24 @@ using MediatR;
 using Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Application.Core;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Application.Activities.Entities;
 namespace Application.Activities.Queries
 {
     public class GetActivityList
     {
-        public class Query() : IRequest<List<Activity>>
+        public class Query() : IRequest<Result<List<ActivityEntity>>>
         {
         }
 
-        public class Handler(AppDbContext appDbContext, ILogger<GetActivityList> logger) : IRequestHandler<Query, List<Activity>>
+        public class Handler(AppDbContext appDbContext, IMapper mapper) : IRequestHandler<Query, Result<List<ActivityEntity>>>
         {
-            public async Task<List<Activity>> Handle(Query request, CancellationToken cancellationToken)
+            public async Task<Result<List<ActivityEntity>>> Handle(Query request, CancellationToken cancellationToken)
             {
-                try
-                {
-                    for (int i = 0; i < 10; i++)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        await Task.Delay(100, cancellationToken);
-                        logger.LogInformation($"task {i} has completed");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Log the exception (you can use a logging framework like Serilog, NLog, etc.)
-                    Console.WriteLine($"An error occurred while fetching activities: {ex.Message}");
-                    // Optionally, you can rethrow the exception or return an empty list
-                    throw; // Rethrow the exception to be handled by a global exception handler
-                }
-                return await appDbContext.Activities.ToListAsync(cancellationToken);
+                var activities = await appDbContext.Activities.ProjectTo<ActivityEntity>(mapper.ConfigurationProvider).ToListAsync(cancellationToken);
+                return Result<List<ActivityEntity>>.Success(activities);
             }
         }
     }

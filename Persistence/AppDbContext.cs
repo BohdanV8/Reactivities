@@ -7,6 +7,8 @@ public class AppDbContext : IdentityDbContext<User>
     public required DbSet<Activity> Activities { get; set; }
     public required DbSet<ActivityAttendee> ActivityAttendees { get; set; }
     public required DbSet<Photo> Photos { get; set; }
+    public required DbSet<Comment> Comments { get; set; }
+    public required DbSet<UserFollowing> UserFollowings { get; set; }
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
@@ -23,5 +25,17 @@ public class AppDbContext : IdentityDbContext<User>
             .HasOne(aa => aa.Activity)
             .WithMany(a => a.Attendees)
             .HasForeignKey(aa => aa.ActivityId);
+
+        builder.Entity<UserFollowing>(x => x.HasKey(uf => new { uf.ObserverId, uf.TargetId }));
+        builder.Entity<UserFollowing>()
+            .HasOne(uf => uf.Observer)
+            .WithMany(u => u.Followings)
+            .HasForeignKey(uf => uf.ObserverId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<UserFollowing>()
+            .HasOne(uf => uf.Target)
+            .WithMany(u => u.Followers)
+            .HasForeignKey(uf => uf.TargetId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

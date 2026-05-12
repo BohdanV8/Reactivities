@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Application.Profiles.Profiles;
 using Application.Profiles.Entities;
 using Application.Profiles.Queries;
+using Application.Activities.Commands;
 
 namespace API.Controllers
 {
@@ -39,6 +40,31 @@ namespace API.Controllers
         public async Task<ActionResult<UserProfile>> GetUserProfile(string userId)
         {
             return HandleResult(await Mediator.Send(new GetProfile.Query { UserId = userId }));
+        }
+
+        [HttpPut("editProfile")]
+        public async Task<ActionResult> EditUserProfile([FromForm] EditProfileEntity profileEntity)
+        {
+            EditProfile.Command command = new EditProfile.Command(profileEntity);
+            return HandleResult(await Mediator.Send(command));
+        }
+
+        [HttpPost("{userId}/follow")]
+        public async Task<ActionResult> FollowToggle(string userId)
+        {
+            return HandleResult(await Mediator.Send(new FollowToggle.Command { TargetUserId = userId }));
+        }
+
+        [HttpPost("{userId}/followings")]
+        public async Task<ActionResult> GetFollowings(string userId, [FromQuery] string predicate = "followers")
+        {
+            return HandleResult(await Mediator.Send(new GetFollowings.Query { UserId = userId, Predicate = predicate }));
+        }
+
+        [HttpGet("{userId}/follow-list")]
+        public async Task<ActionResult> GetFollowList(string userId, string predicate)
+        {
+            return HandleResult(await Mediator.Send(new GetFollowings.Query { UserId = userId, Predicate = predicate }));
         }
     }
 }

@@ -10,9 +10,9 @@ namespace Persistence
         public static async Task seedData(AppDbContext context, UserManager<User> _userManager)
         {
             List<User> users = new List<User>() {
-                new() { DisplayName = "Jack", UserName = "jack@gmail.com", Email = "jack@gmail.com" },
-                new() { DisplayName = "Tom", UserName = "tom@gmail.com", Email = "tom@gmail.com" },
-                new() { DisplayName = "Jane", UserName = "jane@gmail.com", Email = "jane@gmail.com" },
+                new() { Id = "jack-id", DisplayName = "Jack", UserName = "jack@gmail.com", Email = "jack@gmail.com" },
+                new() { Id = "tom-id", DisplayName = "Tom", UserName = "tom@gmail.com", Email = "tom@gmail.com" },
+                new() { Id = "jane-id", DisplayName = "Jane", UserName = "jane@gmail.com", Email = "jane@gmail.com" },
             };
             if (!_userManager.Users.Any())
             {

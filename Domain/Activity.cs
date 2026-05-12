@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Domain
 {
+    [Index(nameof(Date))]
     public class Activity
     {
         public Guid Id { get; set; }
@@ -16,5 +18,6 @@ namespace Domain
         public double Longitude { get; set; }
 
         public ICollection<ActivityAttendee> Attendees { get; set; } = [];
+        public ICollection<Comment> Comments { get; set; } = [];
     }
 }

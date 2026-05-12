@@ -17,9 +17,11 @@ public class ActivitiesController : BaseApiController
 {
     [AllowAnonymous]
     [HttpGet]
-    public async Task<ActionResult<Result<List<ActivityEntity>>>> GetActivities(CancellationToken cancellationToken)
+    public async Task<ActionResult<Result<PageList<ActivityEntity>>>> GetActivities([FromQuery] ActivityParams activityParams)
     {
-        return HandleResult(await Mediator.Send(new GetActivityList.Query(), cancellationToken));
+        Result<PageList<ActivityEntity>> result = await Mediator.Send(new GetActivityList.Query { Params = activityParams });
+        Console.WriteLine("Get activities: " + result);
+        return HandleResult(result);
     }
     [Authorize]
     [HttpGet("{id}")]
@@ -58,5 +60,4 @@ public class ActivitiesController : BaseApiController
         var command = new DeleteActivity.Command(id);
         return HandleResult(await Mediator.Send(command));
     }
-
 }

@@ -1,4 +1,5 @@
 using API.Middlewares;
+using API.SignalR;
 using Application.Activities.Queries;
 using Application.Activities.Validators;
 using Application.Core;
@@ -20,7 +21,7 @@ builder.Services.AddControllers(opt =>
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IUserAccessor, UserAccessor>();
 builder.Services.AddOpenApi();
 builder.Services.AddMediatR(x => {
@@ -52,6 +53,7 @@ builder.Services.AddAuthorization(opt =>
 builder.Services.AddTransient<IAuthorizationHandler, IsHostRequirementHandler>();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.AddScoped<IPhotoService, PhotoService>();
+builder.Services.AddSignalR();
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins("http://localhost:3000", "https://localhost:3000"));
@@ -80,6 +82,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapGroup("/api").MapIdentityApi<User>();
+app.MapHub<CommentHub>("/comments");
 ////// --- ТИМЧАСОВИЙ МАРШРУТ ДЛЯ ДЕБАГУ ---
 //app.MapGet("/api/test-user", async (UserManager<User> userManager) =>
 //{

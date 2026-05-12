@@ -23,6 +23,11 @@ namespace Application.Core
                 ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.User.Bio)).
                 ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.User.Id));
             CreateMap<User, UserProfile>();
+            CreateMap<Comment, CommentEntity>().
+                ForMember(dest => dest.DisplayName, opt => opt.MapFrom(src => src.User.DisplayName)).
+                ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.User.ImageUrl)).
+                ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.User.Id));
+            CreateMap<EditProfileEntity, User>();
         }
     }
 }

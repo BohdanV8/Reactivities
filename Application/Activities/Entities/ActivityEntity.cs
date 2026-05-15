@@ -14,13 +14,13 @@ namespace Application.Activities.Entities
         public DateTime Date { get; set; }
         public required string Category { get; set; }
         public bool IsCancelled { get; set; }
-        public required string HostDisplayName { get; set; }
-        public required string HostId { get; set; }
+        public string? HostDisplayName { get; set; }
+        public string? HostId { get; set; }
         public required string City { get; set; }
         public required string Venue { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
 
-        public ICollection<UserProfile> Attendees { get; set; } = [];
+        public ICollection<UserProfile>? Attendees { get; set; } = null;
     }
 }

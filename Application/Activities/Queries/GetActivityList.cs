@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using MediatR;
+﻿using MediatR;
 using Domain;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Application.Core;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using Application.Activities.Entities;
 using Application.Intarfaces;
+using AutoMapper;
+using Application.Activities.Entities;
 namespace Application.Activities.Queries
 {
     public class GetActivityList
@@ -19,7 +14,7 @@ namespace Application.Activities.Queries
             public required ActivityParams Params { get; set; } = new ActivityParams();
         }
 
-        public class Handler(AppDbContext appDbContext, IMapper mapper, IUserAccessor _userAccessor) : IRequestHandler<Query, Result<PageList<ActivityEntity>>>
+        public class Handler(AppDbContext appDbContext, IUserAccessor _userAccessor, IMapper mapper) : IRequestHandler<Query, Result<PageList<ActivityEntity>>>
         {
             public async Task<Result<PageList<ActivityEntity>>> Handle(Query request, CancellationToken cancellationToken)
             {
@@ -49,14 +44,17 @@ namespace Application.Activities.Queries
                 }
                 var count = await query.CountAsync(cancellationToken);
 
-                var activities = await query
+                List<Activity> activities = await query
                     .Skip((request.Params.PageNumber - 1) * request.Params.PageSize)
                     .Take(request.Params.PageSize)
-                    .ProjectTo<ActivityEntity>(mapper.ConfigurationProvider, new { currentUserId = _userAccessor.getUserId() })
-                    .AsSplitQuery()
                     .ToListAsync(cancellationToken);
 
-                var pageList = new PageList<ActivityEntity>(activities, count, request.Params.PageNumber, request.Params.PageSize);
+                List<ActivityEntity> mappedActivities = mapper.Map<List<ActivityEntity>>(activities, opt =>
+                {
+                    opt.Items["currentUserId"] = _userAccessor.getUserId();
+                });
+
+                PageList<ActivityEntity> pageList = new PageList<ActivityEntity>(mappedActivities, count, request.Params.PageNumber, request.Params.PageSize);
 
                 return Result<PageList<ActivityEntity>>.Success(pageList);
             }

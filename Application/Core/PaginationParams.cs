@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Application.Core
 {
-    public class PaginationParams<TCursor>
+    public class PaginationParams
     {
         private const int MaxPageSize = 50;
         public int PageNumber { get; set; } = 1;

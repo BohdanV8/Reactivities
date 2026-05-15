@@ -15,7 +15,6 @@ namespace API.Controllers;
 [ApiController]
 public class ActivitiesController : BaseApiController
 {
-    [AllowAnonymous]
     [HttpGet]
     public async Task<ActionResult<Result<PageList<ActivityEntity>>>> GetActivities([FromQuery] ActivityParams activityParams)
     {

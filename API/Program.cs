@@ -41,10 +41,8 @@ builder.Services.AddIdentityApiEndpoints<User>(opt =>
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    // Дозволяємо браузеру зберігати куку при крос-доменних запитах
     options.Cookie.SameSite = SameSiteMode.None;
 
-    // Вимагаємо обов'язковий HTTPS (тепер він у нас є завдяки Nginx!)
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 });
 
@@ -73,18 +71,10 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 using var scope = app.Services.CreateScope();
-//не можна
-try
-{
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await context.Database.MigrateAsync();
-    await DBInitializer.seedData(context, scope.ServiceProvider.GetRequiredService<UserManager<User>>());
-}
-catch (Exception ex)
-{
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    logger.LogError(ex, "An error occurred during migration");
-}
+var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+await context.Database.MigrateAsync();
+await DBInitializer.seedData(context, scope.ServiceProvider.GetRequiredService<UserManager<User>>());
+
 
 app.UseHttpsRedirection();
 
@@ -94,29 +84,5 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapGroup("/api").MapIdentityApi<User>();
 app.MapHub<CommentHub>("/comments");
-////// --- ТИМЧАСОВИЙ МАРШРУТ ДЛЯ ДЕБАГУ ---
-//app.MapGet("/api/test-user", async (UserManager<User> userManager) =>
-//{
-//    // 1. Чи взагалі Identity бачить цього юзера по Email?
-//    var user = await userManager.FindByEmailAsync("tom@gmail.com");
-//    if (user == null)
-//    {
-//        return Results.NotFound("Identity каже: Користувача james@gmail.com НЕ ЗНАЙДЕНО!");
-//    }
-
-//    // 2. Чи підходить пароль?
-//    var isPasswordCorrect = await userManager.CheckPasswordAsync(user, "Pa$$w0rd");
-
-//    // 3. Віддаємо всю правду
-//    return Results.Ok(new
-//    {
-//        Message = "Юзера знайдено!",
-//        Username = user.UserName,
-//        PasswordIsCorrect = isPasswordCorrect,
-//        EmailConfirmed = user.EmailConfirmed,
-//        PasswordHash = user.PasswordHash?.Substring(0, 15) + "..." // Покажемо початок хешу
-//    });
-//});
-////// ------------------------------------
 
 app.Run();

@@ -14,9 +14,9 @@ namespace Application.Core
             //CreateMap<Activity, Activity>();
             CreateMap<CreateActivityEntity, Activity>();
             CreateMap<EditActivityEntity, Activity>();
-            CreateMap<Activity, ActivityEntity>().
-                ForMember(dest => dest.HostId, opt => opt.MapFrom(src => src.Attendees.FirstOrDefault(x => x.IsHost).User.Id))
-                .ForMember(dest => dest.HostDisplayName, opt => opt.MapFrom(src => src.Attendees.FirstOrDefault(x => x.IsHost).User.DisplayName));
+            CreateMap<Activity, ActivityEntity>()
+                .ForMember(dest => dest.HostId, opt => opt.MapFrom(src => (src.Attendees != null && src.Attendees.Any(x => x.IsHost)) ? src.Attendees.FirstOrDefault(x => x.IsHost).User.Id : null))
+                .ForMember(dest => dest.HostDisplayName, opt => opt.MapFrom(src => (src.Attendees != null && src.Attendees.Any(x => x.IsHost)) ? src.Attendees.FirstOrDefault(x => x.IsHost).User.DisplayName : null));
             CreateMap<ActivityAttendee, UserProfile>().
                 ForMember(dest => dest.DisplayName, opt => opt.MapFrom(src => src.User.DisplayName)).
                 ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.User.ImageUrl)).

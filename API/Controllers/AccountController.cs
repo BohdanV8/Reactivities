@@ -3,6 +3,9 @@ using Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+using System.Text;
 
 namespace API.Controllers
 {
@@ -28,7 +31,6 @@ namespace API.Controllers
             }
             return ValidationProblem();
         }
-        [AllowAnonymous]
         [HttpGet("user-info")]
         public async Task<ActionResult> GetUserInfo()
         {

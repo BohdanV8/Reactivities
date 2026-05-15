@@ -38,6 +38,17 @@ builder.Services.AddIdentityApiEndpoints<User>(opt =>
 })
 .AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<AppDbContext>();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    // Дозволяємо браузеру зберігати куку при крос-доменних запитах
+    options.Cookie.SameSite = SameSiteMode.None;
+
+    // Вимагаємо обов'язковий HTTPS (тепер він у нас є завдяки Nginx!)
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
+
+
 builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddMaps(typeof(MappingProfiles).Assembly);

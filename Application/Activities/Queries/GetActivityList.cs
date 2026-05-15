@@ -23,11 +23,12 @@ namespace Application.Activities.Queries
         {
             public async Task<Result<PageList<ActivityEntity>>> Handle(Query request, CancellationToken cancellationToken)
             {
-                var query = appDbContext.Activities.OrderBy(a => a.Date)
+                var query = appDbContext.Activities
                     .Where(a => a.Date >= request.Params.StartDate)
+                    .OrderBy(a => a.Date)
                     .AsQueryable();
 
-                if(!string.IsNullOrEmpty(request.Params.SearchTerm))
+                if (!string.IsNullOrEmpty(request.Params.SearchTerm))
                 {
                     string? search = request.Params.SearchTerm.ToLower();
                     query = query.Where(a => a.Title.ToLower().Contains(search) || a.City.ToLower().Contains(search) || a.Venue.ToLower().Contains(search));
@@ -46,17 +47,18 @@ namespace Application.Activities.Queries
                         _ => query
                     };
                 }
-                var projectedActivities = query.ProjectTo<ActivityEntity>(mapper.ConfigurationProvider, new { currentUserId = _userAccessor.getUserId()});
-                List<ActivityEntity> activities = await projectedActivities.Take(request.Params.PageSize + 1).ToListAsync(cancellationToken);
-                DateTime? nextCursor = null;
-                if(activities.Count > request.Params.PageSize)
-                {
-                    nextCursor = activities.Last().Date;
-                    activities.RemoveAt(activities.Count - 1);
-                }
-                return Result<PageList<ActivityEntity>>.Success(
-                    await PageList<ActivityEntity>.CreateAsync(projectedActivities, request.Params.PageNumber, request.Params.PageSize)
-                );
+                var count = await query.CountAsync(cancellationToken);
+
+                var activities = await query
+                    .Skip((request.Params.PageNumber - 1) * request.Params.PageSize)
+                    .Take(request.Params.PageSize)
+                    .ProjectTo<ActivityEntity>(mapper.ConfigurationProvider, new { currentUserId = _userAccessor.getUserId() })
+                    .AsSplitQuery()
+                    .ToListAsync(cancellationToken);
+
+                var pageList = new PageList<ActivityEntity>(activities, count, request.Params.PageNumber, request.Params.PageSize);
+
+                return Result<PageList<ActivityEntity>>.Success(pageList);
             }
         }
     }
